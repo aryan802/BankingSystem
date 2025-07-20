@@ -7,6 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
+    <PackageReference Include="itext7" Version="9.2.0" />
+    <PackageReference Include="MailKit" Version="4.13.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.18" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.18" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.7" />
@@ -21,7 +24,6 @@
     <Folder Include="Configurations\" />
     <Folder Include="Helpers\" />
     <Folder Include="Repositories\" />
-    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>

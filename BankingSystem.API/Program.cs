@@ -1,5 +1,7 @@
 ﻿using BankingSystem.API.Data;
 using BankingSystem.API.Models;
+using BankingSystem.API.Services; //  Add this
+using BankingSystem.API.Settings; //  Add this
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -7,6 +9,12 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//  Add Email Settings
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
+
+builder.Services.AddTransient<EmailService>(); // Add EmailService
 
 // DB Connection
 builder.Services.AddDbContext<BankingDbContext>(options =>
@@ -40,7 +48,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// ✅ FIXED: Swagger + JWT Setup
+// Swagger + JWT Setup
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "Banking API", Version = "v1" });
@@ -76,12 +84,12 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
-app.UseAuthentication();  // ✅ Needed for JWT
+app.UseAuthentication();  // Needed for JWT
 app.UseAuthorization();
 
 app.MapControllers();
 
-// ✅ Seed roles and admin user
+// Seed roles and admin user
 using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();

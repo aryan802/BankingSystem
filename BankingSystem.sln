@@ -1,9 +1,31 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36119.2 d17.14
+VisualStudioVersion = 17.14.36119.2
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BankingSystem.API", "BankingSystem.API\BankingSystem.API.csproj", "{60FB7168-2AA2-4716-9278-52B27E7B23B5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "banking-frontend", "banking-frontend", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "banking-frontend", "banking-frontend\", "{A57FEA85-3365-D0B2-3920-D82A3B8EDE8C}"
+	ProjectSection(WebsiteProperties) = preProject
+		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.8"
+		Debug.AspNetCompiler.VirtualPath = "/localhost_50388"
+		Debug.AspNetCompiler.PhysicalPath = "banking-frontend\"
+		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_50388\"
+		Debug.AspNetCompiler.Updateable = "true"
+		Debug.AspNetCompiler.ForceOverwrite = "true"
+		Debug.AspNetCompiler.FixedNames = "false"
+		Debug.AspNetCompiler.Debug = "True"
+		Release.AspNetCompiler.VirtualPath = "/localhost_50388"
+		Release.AspNetCompiler.PhysicalPath = "banking-frontend\"
+		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_50388\"
+		Release.AspNetCompiler.Updateable = "true"
+		Release.AspNetCompiler.ForceOverwrite = "true"
+		Release.AspNetCompiler.FixedNames = "false"
+		Release.AspNetCompiler.Debug = "False"
+		VWDPort = "50388"
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,9 +37,16 @@ Global
 		{60FB7168-2AA2-4716-9278-52B27E7B23B5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60FB7168-2AA2-4716-9278-52B27E7B23B5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{60FB7168-2AA2-4716-9278-52B27E7B23B5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A57FEA85-3365-D0B2-3920-D82A3B8EDE8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A57FEA85-3365-D0B2-3920-D82A3B8EDE8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A57FEA85-3365-D0B2-3920-D82A3B8EDE8C}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{A57FEA85-3365-D0B2-3920-D82A3B8EDE8C}.Release|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A57FEA85-3365-D0B2-3920-D82A3B8EDE8C} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B62C6955-0C02-4137-824B-8D1258F6991B}

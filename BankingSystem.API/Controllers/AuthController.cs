@@ -59,6 +59,7 @@ namespace BankingSystem.API.Controllers
 
             var authClaims = new List<Claim>
             {
+                new Claim(ClaimTypes.NameIdentifier, user.Id), // ✅ Fix for user ID
                 new Claim(ClaimTypes.Name, user.UserName),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
@@ -86,4 +87,5 @@ namespace BankingSystem.API.Controllers
         }
     }
 }
+
 

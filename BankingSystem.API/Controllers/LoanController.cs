@@ -1,6 +1,7 @@
 ﻿using BankingSystem.API.Data;
 using BankingSystem.API.DTOs;
 using BankingSystem.API.Models;
+using BankingSystem.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,11 +16,16 @@ namespace BankingSystem.API.Controllers
     {
         private readonly BankingDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly EmailService _emailService;
 
-        public LoanController(BankingDbContext context, UserManager<ApplicationUser> userManager)
+        public LoanController(
+            BankingDbContext context,
+            UserManager<ApplicationUser> userManager,
+            EmailService emailService)
         {
             _context = context;
             _userManager = userManager;
+            _emailService = emailService;
         }
 
         // POST: api/Loan (Customer applies for loan)
@@ -73,6 +79,13 @@ namespace BankingSystem.API.Controllers
             loan.Status = "Approved";
             await _context.SaveChangesAsync();
 
+            // ✅ Send email
+            _emailService.SendEmail(
+                loan.Applicant.Email,
+                "Loan Approved",
+                $"Hello {loan.Applicant.FullName},\n\nYour loan of ₹{loan.Amount} has been approved."
+            );
+
             return Ok(new { message = "Loan approved" });
         }
 
@@ -81,13 +94,20 @@ namespace BankingSystem.API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RejectLoan(int id)
         {
-            var loan = await _context.Loans.FindAsync(id);
+            var loan = await _context.Loans.Include(l => l.Applicant).FirstOrDefaultAsync(l => l.Id == id);
             if (loan == null) return NotFound();
 
             if (loan.Status != "Pending") return BadRequest("Loan already processed");
 
             loan.Status = "Rejected";
             await _context.SaveChangesAsync();
+
+            // ✅ Send email
+            _emailService.SendEmail(
+                loan.Applicant.Email,
+                "Loan Rejected",
+                $"Hello {loan.Applicant.FullName},\n\nYour loan application of ₹{loan.Amount} has been rejected."
+            );
 
             return Ok(new { message = "Loan rejected" });
         }
