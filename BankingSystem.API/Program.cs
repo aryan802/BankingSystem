@@ -1,7 +1,7 @@
 ﻿using BankingSystem.API.Data;
 using BankingSystem.API.Models;
-using BankingSystem.API.Services; //  Add this
-using BankingSystem.API.Settings; //  Add this
+using BankingSystem.API.Services;
+using BankingSystem.API.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -10,29 +10,37 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//  Add Email Settings
+// 1. Email Settings
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<EmailService>();
 
-builder.Services.AddTransient<EmailService>(); // Add EmailService
-
-// DB Connection
+// 2. DB Connection
 builder.Services.AddDbContext<BankingDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Identity
+// 3. Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<BankingDbContext>()
     .AddDefaultTokenProviders();
 
-// JWT Authentication
+// 4. CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+      policy.AllowAnyOrigin()
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
+
+// 5. JWT Auth
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = "JwtBearer";
     options.DefaultChallengeScheme = "JwtBearer";
-}).AddJwtBearer("JwtBearer", options =>
+}).AddJwtBearer("JwtBearer", opts =>
 {
-    options.TokenValidationParameters = new TokenValidationParameters
+    opts.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
@@ -48,21 +56,19 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// Swagger + JWT Setup
-builder.Services.AddSwaggerGen(options =>
+// 6. Swagger + JWT
+builder.Services.AddSwaggerGen(opts =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Banking API", Version = "v1" });
-
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    opts.SwaggerDoc("v1", new OpenApiInfo { Title = "Banking API", Version = "v1" });
+    opts.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "Enter JWT token. Format: Bearer {token}",
+        Description = "JWT auth (Bearer {token})",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
-
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    opts.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
             new OpenApiSecurityScheme
@@ -73,57 +79,58 @@ builder.Services.AddSwaggerGen(options =>
                     Id = "Bearer"
                 }
             },
-            new string[] {}
+            new string[]{}
         }
     });
 });
 
 var app = builder.Build();
 
+// Use middleware in correct order:
 app.UseSwagger();
 app.UseSwaggerUI();
 
+app.UseRouting();            // ← Must come before CORS & Auth
+app.UseCors("AllowAll");     // ← Handle CORS preflight
+
 app.UseHttpsRedirection();
-app.UseAuthentication();  // Needed for JWT
-app.UseAuthorization();
+app.UseAuthentication();     // ← Validate JWT
+app.UseAuthorization();      // ← Authorize roles
 
-app.MapControllers();
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+});
 
-// Seed roles and admin user
+// Seed roles & admin
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var roles = new[] { "Admin", "Customer" };
+    var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-    string[] roles = { "Admin", "Customer" };
+    foreach (var r in roles)
+        if (!await roleMgr.RoleExistsAsync(r))
+            await roleMgr.CreateAsync(new IdentityRole(r));
 
-    foreach (var role in roles)
+    var adminEmail = "admin@bank.com";
+    var adminPwd = "Admin@123";
+    if (await userMgr.FindByEmailAsync(adminEmail) == null)
     {
-        if (!await roleManager.RoleExistsAsync(role))
-            await roleManager.CreateAsync(new IdentityRole(role));
-    }
-
-    string adminEmail = "admin@bank.com";
-    string adminPassword = "Admin@123";
-
-    var adminUser = await userManager.FindByEmailAsync(adminEmail);
-    if (adminUser == null)
-    {
-        var user = new ApplicationUser
+        var admin = new ApplicationUser
         {
-            UserName = adminEmail,
             Email = adminEmail,
+            UserName = adminEmail,
             FullName = "System Admin"
         };
-
-        var result = await userManager.CreateAsync(user, adminPassword);
-        if (result.Succeeded)
-        {
-            await userManager.AddToRoleAsync(user, "Admin");
-        }
+        if ((await userMgr.CreateAsync(admin, adminPwd)).Succeeded)
+            await userMgr.AddToRoleAsync(admin, "Admin");
     }
 }
 
 app.Run();
+
+
+
 
 
